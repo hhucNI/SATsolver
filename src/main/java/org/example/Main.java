@@ -22,8 +22,8 @@ public class Main {
         //init
         Set<Integer> allLiterals=new HashSet<>();
         List<Clause> clauseList=new ArrayList<>();
-        List<List<>>
-
+        boolean[] isAssign;
+        int bound=0;
 
         //read data from file
         Scanner scan=new Scanner(new File(""));
@@ -45,15 +45,18 @@ public class Main {
             }
             //init literal and all literal dataStructure
             Integer positiveA=a>0?a:-a;
+            if(positiveA>bound) bound=positiveA;
             if(!allLiterals.contains(positiveA)){
                 allLiterals.add(positiveA);
             }
             c.literals.add(a);
 
         }
+        isAssign=new boolean[bound]
+        
         //根据clause list建立倒排索引 var->clause
-
         Map<Integer, List<Clause>> literal2Clause=new HashMap<>();
+
         for (Clause clause : clauseList) {
             for (int lit : clause.literals) {
                 int positiveLit=lit>0?lit:-lit;
@@ -68,6 +71,7 @@ public class Main {
         //
         AssignStrategy assignStrategy=new RandomAssign();
         assignStrategy.assgin();
+
 
 
 
