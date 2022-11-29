@@ -22,7 +22,8 @@ public class Main {
         //init
         Set<Integer> allLiterals=new HashSet<>();
         List<Clause> clauseList=new ArrayList<>();
-        boolean[] isAssign;
+        boolean[] isAssignPos;
+        boolean[] isAssignNeg;
         int bound=0;
 
         //read data from file
@@ -52,8 +53,9 @@ public class Main {
             c.literals.add(a);
 
         }
-        isAssign=new boolean[bound]
-        
+        isAssignPos=new boolean[bound];
+        isAssignNeg=new boolean[bound];
+
         //根据clause list建立倒排索引 var->clause
         Map<Integer, List<Clause>> literal2Clause=new HashMap<>();
 
@@ -69,8 +71,18 @@ public class Main {
         }
 
         //
-        AssignStrategy assignStrategy=new RandomAssign();
-        assignStrategy.assgin();
+//        AssignStrategy assignStrategy=new RandomAssign();
+//        assignStrategy.assgin();
+
+        for (int i = 0; i < isAssignPos.length; i++) {
+            boolean b = isAssignPos[i];
+            if(!b) {
+                //choose this one
+                isAssignPos[i]=true;
+                isAssignNeg[i]=true;
+
+            }
+        }
 
 
 

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b7f4e62a-de7b-47a1-b38c-1e2ef312e7d2" name="Changes" comment="除了图之外的数据结构构建">
+    <list default="true" id="b7f4e62a-de7b-47a1-b38c-1e2ef312e7d2" name="Changes" comment="push到github">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
@@ -69,6 +69,7 @@
       <workItem from="1668856319005" duration="9776000" />
       <workItem from="1669448578444" duration="6252000" />
       <workItem from="1669687305993" duration="461000" />
+      <workItem from="1669688349095" duration="1183000" />
     </task>
     <task id="LOCAL-00001" summary="create project">
       <created>1667892669650</created>
@@ -84,7 +85,14 @@
       <option name="project" value="LOCAL" />
       <updated>1669468987501</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="push到github">
+      <created>1669688657315</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1669688657315</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -104,6 +112,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="create project" />
     <MESSAGE value="除了图之外的数据结构构建" />
-    <option name="LAST_COMMIT_MESSAGE" value="除了图之外的数据结构构建" />
+    <MESSAGE value="push到github" />
+    <option name="LAST_COMMIT_MESSAGE" value="push到github" />
   </component>
 </project>
