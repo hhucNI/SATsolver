@@ -16,7 +16,9 @@ public class Clause {
     public ArrayList<Integer> literals=new ArrayList<>();
     public HashSet<Integer> litSet;
     public int watch1;
+    public boolean watch1sig;
     public int watch2;
+    public boolean watch2sig;
 
     //如果有一个false翻转成true，则直接满足
     public boolean isSatisfied = false;
