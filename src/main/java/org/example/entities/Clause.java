@@ -16,7 +16,7 @@ public class Clause {
 
 
     //literals中 正负均有
-    public ArrayList<Integer> literals=new ArrayList<>();
+    public List<Integer> literals=new ArrayList<>();
     public HashSet<Integer> litSet;
     public int watch1;
     public boolean watch1sig;

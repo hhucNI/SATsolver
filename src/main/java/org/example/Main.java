@@ -13,7 +13,9 @@ import java.util.*;
 public class Main {
     public static final List<List<GraphNode>> level2GraphNode = new ArrayList<>();
     public static final List<GraphNode> lit2GraphNode = new ArrayList<>();
-    static int curDecisionLevel;
+    public static final Set<Integer> allLiterals = new HashSet<>();
+    public static final List<Clause> clauseList = new ArrayList<>();
+    public static int curDecisionLevel;
     public static List<List<Clause>> literal2Clause;
     public static boolean[] isAssignPos;
     public static boolean[] isAssignNeg;
@@ -27,8 +29,6 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
 
         //init
-        Set<Integer> allLiterals = new HashSet<>();
-        List<Clause> clauseList = new ArrayList<>();
 
         //每个列表第一个为decision node
         //不需要区分正负
@@ -125,8 +125,22 @@ public class Main {
 
             //add clause and flip
             // 新clause的推导就跟着倒数第二个
-            //TODO update all relevant data structure
+            List<Integer> clauseLit=new ArrayList<>();
+            for (GraphNode graphNode : rootReason) {
+                //交集取非
+                clauseLit.add(-graphNode.var);
+            }
+            Clause clause = new Clause();
+            clause.literals=clauseLit;
 
+            // update all relevant data structure
+            clauseList.add(clause);
+
+            for (Integer var : clauseLit) {
+                literal2Clause.get(Utils.getPositive(var)).add(clause);
+            }
+
+            //Todo 给新clause的剩余变量附上值
         }
     }
 
