@@ -13,6 +13,9 @@ public class Clause {
     public int counter;
     //长度<10的子句:Array或者List
     //TODO 优化，根据文件名或者第一行指定ArrayList Initial Size
+
+
+    //literals中 正负均有
     public ArrayList<Integer> literals=new ArrayList<>();
     public HashSet<Integer> litSet;
     public int watch1;
