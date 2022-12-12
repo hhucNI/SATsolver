@@ -10,7 +10,6 @@ import java.util.Objects;
 public class GraphNode {
     public List<GraphNode> pre;
     public int decisionLevel;
-    public boolean assignedValue = false;
 
     /**
      *  正负均可，assignedValue后面去掉
@@ -23,27 +22,23 @@ public class GraphNode {
      */
     int nodeType;
 
-    public GraphNode(List<GraphNode> pre, int decisionLevel, boolean assignedValue, int var) {
+
+
+    public GraphNode(List<GraphNode> pre, int decisionLevel, int var, int nodeType) {
         this.pre = pre;
         this.decisionLevel = decisionLevel;
 
-        this.assignedValue = assignedValue;
-        this.var = var;
-
-
-//        this.varAndValue = assignedValue?
-    }
-
-    public GraphNode(List<GraphNode> pre, int decisionLevel, boolean assignedValue, int var, int nodeType) {
-        this.pre = pre;
-        this.decisionLevel = decisionLevel;
-
-        this.assignedValue = assignedValue;
         this.var = var;
         this.nodeType = nodeType;
 
 
 //        this.varAndValue = assignedValue?
+    }
+
+    public GraphNode(List<GraphNode> pre, int decisionLevel, int nodeType) {
+        this.pre = pre;
+        this.decisionLevel=decisionLevel;
+        this.nodeType = nodeType;
     }
 
     /**
