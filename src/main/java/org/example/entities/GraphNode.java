@@ -11,11 +11,17 @@ public class GraphNode {
     public List<GraphNode> pre;
     public int decisionLevel;
     public boolean assignedValue = false;
+
+    /**
+     *  正负均可，assignedValue后面去掉
+     */
     public int var;
 //    int varAndValue;
 
-    //true : decision var  false : implication
-    boolean nodeType = true;
+    /**
+     *     0 : decision var  1 : implication 2: conflict node
+     */
+    int nodeType;
 
     public GraphNode(List<GraphNode> pre, int decisionLevel, boolean assignedValue, int var) {
         this.pre = pre;
@@ -28,7 +34,7 @@ public class GraphNode {
 //        this.varAndValue = assignedValue?
     }
 
-    public GraphNode(List<GraphNode> pre, int decisionLevel, boolean assignedValue, int var, boolean nodeType) {
+    public GraphNode(List<GraphNode> pre, int decisionLevel, boolean assignedValue, int var, int nodeType) {
         this.pre = pre;
         this.decisionLevel = decisionLevel;
 
@@ -40,6 +46,11 @@ public class GraphNode {
 //        this.varAndValue = assignedValue?
     }
 
+    /**
+     *  var绝对值一样即相等
+      * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -50,6 +61,7 @@ public class GraphNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(var);
+        int v=var>0?var:-var;
+        return Objects.hash(v);
     }
 }
