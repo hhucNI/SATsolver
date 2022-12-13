@@ -42,7 +42,7 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-        initDataStructure();
+        initSingleFileDataStructure();
 
         //
 //        AssignStrategy assignStrategy=new RandomAssign();
@@ -154,7 +154,7 @@ public class Main {
 
     }
 
-    private static void initDataStructure() throws FileNotFoundException {
+    private static void initSingleFileDataStructure() throws FileNotFoundException {
         //init
 
         //每个列表第一个为decision node
@@ -167,7 +167,7 @@ public class Main {
         int bound = 0;
 
         //read data from file
-        Scanner scan = new Scanner(new File(""));
+        Scanner scan = new Scanner(new File("D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\aim50.cnf"));
         Clause c = new Clause();
         while (scan.hasNextInt()) {
 
