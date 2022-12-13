@@ -5,7 +5,9 @@ import lombok.Data;
 import java.util.List;
 import java.util.Objects;
 
-
+/**
+ * check done
+ */
 @Data
 public class GraphNode {
     public List<GraphNode> pre;

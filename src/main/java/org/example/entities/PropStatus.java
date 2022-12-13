@@ -1,6 +1,8 @@
 package org.example.entities;
 
-
+/**
+ * check done
+ */
 public class PropStatus {
 
     /**

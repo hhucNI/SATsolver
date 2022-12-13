@@ -1,8 +1,6 @@
 package org.example;
 
-import org.example.assign.AssignStrategy;
 import org.example.entities.Clause;
-import org.example.assign.RandomAssign;
 import org.example.entities.GraphNode;
 import org.example.entities.PropStatus;
 
@@ -62,6 +60,7 @@ public class Main {
         while (true) {
             if (status.isConflict) {
                 //处理冲突
+                //todo 一般不会reason就是自己，但很有可能reason包含自己（decision var错了）
                 Set<GraphNode> rootReason = findRootReason(status.conflictNode);
                 //1.flip之后 被flip的变量就是implication了，那么若再冲突会回溯到更低层
                 int highestLevel = -1;
@@ -111,8 +110,10 @@ public class Main {
                         int var = node.var;
                         lit2GraphNode.remove(var);
                         int pvar = Utils.getPositive(var);
-                        if(var>0) isAssignPos[pvar] = false;
+
+                        if (var > 0) isAssignPos[pvar] = false;
                         else isAssignNeg[pvar] = false;
+
                         List<Clause> clauses = literal2Clause.get(Utils.getPositive(node.var));
                         for (Clause cc : clauses) {
                             cc.isSatisfied = false;
@@ -121,6 +122,9 @@ public class Main {
                     }
                     level2GraphNode.set(i, null);
                 }
+
+                curDecisionLevel = secondHigh - 1;
+
                 //backtracking
                 //intuition : 只要被delete的变量涉及的句子把 flag改一下就行，因为即使backtracking 也不影响watch list
 
@@ -132,8 +136,7 @@ public class Main {
                 //todo 新的clause也需要watch list,因为上面的assgin也可以backtracking,通过倒数第二推出倒数第一，所以backtracking可以把倒
                 // todo 二也delete了，然后倒二赋上相同的值，重新推,推出倒一的neg
                 assignAndPropagate(secondHighestNode.var);
-            }
-            else if (status.isAllDone) {
+            } else if (status.isAllDone) {
                 //结束
                 for (GraphNode graphNode : lit2GraphNode) {
                     int var = graphNode.var;
@@ -144,10 +147,9 @@ public class Main {
                 break;
             } else {
                 //暂时采用随机赋值
+                curDecisionLevel++;
                 assignAndPropagate(0);
             }
-//            assignAndPropagate()
-
         }
 
     }
@@ -273,18 +275,18 @@ public class Main {
         while (!queue.isEmpty()) {
             GraphNode node = queue.poll();
             //查CONFLICT
-            boolean isConflict=false;
-            if(node.var>0){
-                isConflict=!isAssignNeg[node.var];
-            }else if(node.var<0){
-                isConflict=!isAssignPos[-node.var];
+            boolean isConflict = false;
+            if (node.var > 0) {
+                isConflict = !isAssignNeg[node.var];
+            } else if (node.var < 0) {
+                isConflict = !isAssignPos[-node.var];
             }
             //如果冲突，构建冲突节点，统一操作
-            if(isConflict){
+            if (isConflict) {
                 //generate a virtual Conflict Node And do backtrack
                 GraphNode node1 = lit2GraphNode.get(node.var);
                 GraphNode node2 = lit2GraphNode.get(-node.var);
-                List<GraphNode> preList=new ArrayList<>();
+                List<GraphNode> preList = new ArrayList<>();
                 preList.add(node1);
                 preList.add(node2);
                 GraphNode conflictNode = new GraphNode(preList, node.decisionLevel, 0, 2);
@@ -307,7 +309,9 @@ public class Main {
                 if (clause.isSatisfied) continue;
                 int watch1pos = Utils.getPositive(clause.watch1);
                 int watch2pos = Utils.getPositive(clause.watch2);
+                boolean isCandidateWatch1;
                 if (candidateDecisionVar == watch1pos) {
+                    isCandidateWatch1=true;
                     //推出watch2
                     //add to graph
                     //这里图节点给出直接前驱就可以,也就是clause的其他literal
@@ -316,7 +320,7 @@ public class Main {
                     //处理这个map，不需要进行remove，后来的进行覆盖即可？
 
                     //check 2 condition of watch list
-                    boolean unitFlag = checkUnitClause(clause, watch1pos,true);
+                    boolean unitFlag = checkIfUnitClause(clause, watch1pos, isCandidateWatch1);
                     //check done ，no other unassigned var
                     //unit prop
                     //考虑到每次var赋值都会把所有涉及的clause处理一遍，所以conflict
@@ -324,45 +328,50 @@ public class Main {
                     //-----------------------------------------------UNIT --------------------------------------------
                     if (unitFlag) {
                         clause.isSatisfied = true;
-                        if(clause.watch2>0) isAssignPos[watch2pos] = true;
+                        if (clause.watch2 > 0) isAssignPos[watch2pos] = true;
                         else isAssignNeg[watch2pos] = true;
                         //保证该clause为true，再看有没有conflict
-                        boolean unitAssignedValue = clause.watch2 > 0;
                         //构造前驱pre graphNode
                         //也就是所有var都已经赋值
                         //那怎么索引这些var的graphNode呢，那就再搞个数据结构
                         //反正back jump 用论文的方法的话 o(n)跑不了
-                        GraphNode newNode = generateGraphNode(clause, unitAssignedValue);
+                        GraphNode newNode = generateGraphNode(clause,!isCandidateWatch1);
                         queue.offer(newNode);
                         //change : 数据结构修改 改在了开头
 
                     }
 
-                }
-                else if (candidateDecisionVar == watch2pos) {
-                    boolean unitFlag = checkUnitClause(clause, watch2pos,false);
+                } else if (candidateDecisionVar == watch2pos) {
+                    isCandidateWatch1=false;
+                    boolean unitFlag = checkIfUnitClause(clause, watch2pos, isCandidateWatch1);
                     if (unitFlag) {
                         clause.isSatisfied = true;
-                        if(clause.watch1>0) isAssignPos[watch1pos] = true;
-                        else isAssignNeg[-watch1pos] = true;
+                        if (clause.watch1 > 0) isAssignPos[watch1pos] = true;
+                        else isAssignNeg[watch1pos] = true;
                         //保证该clause为true，再看有没有conflict
-                        boolean unitAssignedValue = clause.watch1 > 0;
-                        GraphNode newNode = generateGraphNode(clause, unitAssignedValue);
+                        GraphNode newNode = generateGraphNode(clause,!isCandidateWatch1);
                         queue.offer(newNode);
+
+//                        levellist(也就是level2GraphNode的每层) 放在开头add node
                     }
                 }
-                level2GraphNode.set(curDecisionLevel, levelList);
-
-
             }
         }
-        //queue空了默认返回all done
-        return new PropStatus(0, false, true);
+        level2GraphNode.set(curDecisionLevel, levelList);
+        //queue空了 返回既不conflict又不all done
+        return new PropStatus(0, false, false);
 
 
     }
 
-    private static boolean checkUnitClause(Clause clause, int secLastpos,boolean isWatch1) {
+    /**
+     * check done
+     * @param clause
+     * @param secLastpos
+     * @param isWatch1 本次选择变量是否命中watch1
+     * @return
+     */
+    private static boolean checkIfUnitClause(Clause clause, int secLastpos, boolean isWatch1) {
         boolean unitFlag = true;
         for (int lit : clause.literals) {
             int literal = lit > 0 ? lit : -lit;
@@ -372,16 +381,21 @@ public class Main {
             if (!isAssignPos[literal] && !isAssignNeg[literal]) {
                 //存在非watch list中的未赋值元素
                 //替换watch1 到watch list
-                if(isWatch1) clause.watch1 = lit;
-                else clause.watch2=lit;
+                if (isWatch1) clause.watch1 = lit;
+                else clause.watch2 = lit;
                 unitFlag = false;
             }
         }
         return unitFlag;
     }
 
-
-    public static GraphNode generateGraphNode(Clause clause, boolean unitAssignedValue) {
+    /**
+     * check done
+     * @param clause
+     * @param isGenWatch1
+     * @return
+     */
+    public static GraphNode generateGraphNode(Clause clause, boolean isGenWatch1) {
         List<GraphNode> preNodes = new ArrayList<>();
         for (Integer lit : clause.literals) {
             int plit = Utils.getPositive(lit);
@@ -389,11 +403,13 @@ public class Main {
             preNodes.add(lit2GraphNode.get(plit));
         }
         // maintain data structure
-        GraphNode newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch2);
+        GraphNode newNode;
+        if (isGenWatch1)  newNode= new GraphNode(preNodes, curDecisionLevel, clause.watch1);
+        else newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch2);
+
         return newNode;
     }
 }
-
 
 
 //check if conflict
