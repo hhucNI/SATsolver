@@ -12,13 +12,17 @@ public class Main {
     //todo 可以直接使用level2GraphNode.size()替换curDesicionlevel
 
 //    public static Map<>
+//    public static boolean[] isDisappear;
 
-    public static List<List<GraphNode>> level2GraphNode = new ArrayList<>();
+    /**
+     * back tracing时 删除倒二到最新的所有赋值，尽管有些和root reason无关
+     */
+    public static ArrayList<ArrayList<GraphNode>> level2GraphNode;
 
     /**
      * lit2GraphNode lit正负皆可
      */
-    public static List<GraphNode> lit2GraphNode = new ArrayList<>();
+    public static Map<Integer, GraphNode> lit2GraphNode = new HashMap<>();
 
 
     //全为正，仅作查表使用，或许没用
@@ -30,6 +34,7 @@ public class Main {
     /**
      * literal2Clause : literal 为正,lit索引clause
      */
+    //todo literal2Clause应该也有点问题
     public static List<List<Clause>> literal2Clause;
     public static boolean[] isAssignPos;
     public static boolean[] isAssignNeg;
@@ -121,6 +126,7 @@ public class Main {
                         }
                     }
                     level2GraphNode.set(i, null);
+//                    level2GraphNode.remove(i,);
                 }
 
                 curDecisionLevel = secondHigh - 1;
@@ -138,8 +144,8 @@ public class Main {
                 assignAndPropagate(secondHighestNode.var);
             } else if (status.isAllDone) {
                 //结束
-                for (GraphNode graphNode : lit2GraphNode) {
-                    int var = graphNode.var;
+                for (int key : lit2GraphNode.keySet()) {
+                    int var =lit2GraphNode.get(key).var;
                     System.out.println("------------------------RESULT-------------------------");
                     System.out.print(var + "=");
                     System.out.println("------------------------RESULT-------------------------");
@@ -165,10 +171,26 @@ public class Main {
 
 
         int bound = 0;
+        int givenBound = 0;
+        int clauseNum = 0;
 
         //read data from file
-        Scanner scan = new Scanner(new File("D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\aim50.cnf"));
+        Scanner scan = new Scanner(new File("D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\nby_conflict.cnf"));
         Clause c = new Clause();
+        //完善数据处理，标题部分
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine();
+            if (line.startsWith("c")) continue;
+            if (line.startsWith("p")) {
+                //break
+                String[] info = line.split(" ");
+                givenBound = Integer.parseInt(info[info.length - 2]);
+                clauseNum = Integer.parseInt(info[info.length - 1]);
+                break;
+            }
+            //如果没有title呢
+
+        }
         while (scan.hasNextInt()) {
 
 
@@ -195,6 +217,7 @@ public class Main {
             c.literals.add(a);
 
         }
+
         isAssignPos = new boolean[bound + 1];
         isAssignNeg = new boolean[bound + 1];
 
@@ -216,14 +239,18 @@ public class Main {
                 literal2Clause.get(positiveLit).add(clause);
             }
         }
+        level2GraphNode = new ArrayList<>(bound);
+        for (int i = 0; i < bound; i++) {
+            level2GraphNode.add(null);
+        }
     }
 
-    public static Set<GraphNode> findRootReason(int conflictVar) {
-        GraphNode graphNode = lit2GraphNode.get(conflictVar);
-        Set<GraphNode> container = new HashSet<>();
-        DFS(container, graphNode);
-        return container;
-    }
+//    public static Set<GraphNode> findRootReason(int conflictVar) {
+//        GraphNode graphNode = lit2GraphNode.get(conflictVar);
+//        Set<GraphNode> container = new HashSet<>();
+//        DFS(container, graphNode);
+//        return container;
+//    }
 
     public static Set<GraphNode> findRootReason(GraphNode conflictNode) {
         Set<GraphNode> container = new HashSet<>();
@@ -246,17 +273,20 @@ public class Main {
 
     private static PropStatus assignAndPropagate(int assignedVar) {
         int candidateDecisionVar = assignedVar;
+        boolean hasVar = false;
         if (assignedVar == 0) {
             for (int i = 1; i < isAssignPos.length; i++) {
+
                 boolean b = isAssignPos[i];
-                if (!b) {
+                if (!b && allLiterals.contains(i)) {
                     //没有外部值，随机赋值,这里直接取正了
                     candidateDecisionVar = i;
+                    hasVar = true;
                     break;
                 }
             }
             //所有var都已经赋值，SUCCESS
-            return new PropStatus(0, false, true);
+            if (!hasVar) return new PropStatus(0, false, true);
         }
 
         //choose this one
@@ -266,9 +296,9 @@ public class Main {
         //             另一个立即被推出，故不存在clause仅有一个unassigned var 的情况
 
         //Construct Graph
-        GraphNode graphNode = new GraphNode(null, curDecisionLevel, candidateDecisionVar);
+        GraphNode graphNode = new GraphNode(null, curDecisionLevel, candidateDecisionVar,0);
         Queue<GraphNode> queue = new LinkedList<>();
-        List<GraphNode> levelList = new ArrayList<>();
+        ArrayList<GraphNode> levelList = new ArrayList<>();
         level2GraphNode.add(levelList);
 
         queue.offer(graphNode);
@@ -277,11 +307,14 @@ public class Main {
             //查CONFLICT
             boolean isConflict = false;
             if (node.var > 0) {
-                isConflict = !isAssignNeg[node.var];
+                isConflict = isAssignNeg[node.var];
             } else if (node.var < 0) {
-                isConflict = !isAssignPos[-node.var];
+                isConflict = isAssignPos[-node.var];
             }
-            //如果冲突，构建冲突节点，统一操作
+
+            lit2GraphNode.put(node.var, node);
+            levelList.add(node);
+            //uniform operation
             if (isConflict) {
                 //generate a virtual Conflict Node And do backtrack
                 GraphNode node1 = lit2GraphNode.get(node.var);
@@ -294,24 +327,33 @@ public class Main {
                 PropStatus conflictStatus = new PropStatus(conflictNode);
                 return conflictStatus;
             }
-            lit2GraphNode.set(candidateDecisionVar, node);
-            levelList.add(node);
+
             //find all affected clauses
 
-            List<Clause> affectedClause = literal2Clause.get(candidateDecisionVar);
+            List<Clause> affectedClause = literal2Clause.get(Utils.getPositive(node.var));
 
             for (Clause clause : affectedClause) {
 
                 //insight 未满足的clause一定剩至少两个var，如果其中一个watch lit被assign
                 //             另一个立即被推出，故不存在clause仅有一个unassigned var 的情况
 
-
                 if (clause.isSatisfied) continue;
+                for (Integer clit : clause.literals) {
+                    if(clit==node.var) {
+                        //直接满足
+                        clause.isSatisfied=true;
+                        break;
+                    }
+                }
+                if (clause.isSatisfied) continue;
+
                 int watch1pos = Utils.getPositive(clause.watch1);
                 int watch2pos = Utils.getPositive(clause.watch2);
+                int nodeVarPos=Utils.getPositive(node.var);
+                //todo 12-16 1:15 node.var->nodeVarPos , 加入true直接satisfied的逻辑
                 boolean isCandidateWatch1;
-                if (candidateDecisionVar == watch1pos) {
-                    isCandidateWatch1=true;
+                if (nodeVarPos == watch1pos) {
+                    isCandidateWatch1 = true;
                     //推出watch2
                     //add to graph
                     //这里图节点给出直接前驱就可以,也就是clause的其他literal
@@ -328,6 +370,7 @@ public class Main {
                     //-----------------------------------------------UNIT --------------------------------------------
                     if (unitFlag) {
                         clause.isSatisfied = true;
+                        //unit时直接保持符号跟watch一致
                         if (clause.watch2 > 0) isAssignPos[watch2pos] = true;
                         else isAssignNeg[watch2pos] = true;
                         //保证该clause为true，再看有没有conflict
@@ -335,21 +378,23 @@ public class Main {
                         //也就是所有var都已经赋值
                         //那怎么索引这些var的graphNode呢，那就再搞个数据结构
                         //反正back jump 用论文的方法的话 o(n)跑不了
-                        GraphNode newNode = generateGraphNode(clause,!isCandidateWatch1);
+                        GraphNode newNode = generateGraphNode(clause, !isCandidateWatch1);
                         queue.offer(newNode);
                         //change : 数据结构修改 改在了开头
 
                     }
 
-                } else if (candidateDecisionVar == watch2pos) {
-                    isCandidateWatch1=false;
+                }
+                else if (nodeVarPos == watch2pos) {
+                    isCandidateWatch1 = false;
                     boolean unitFlag = checkIfUnitClause(clause, watch2pos, isCandidateWatch1);
                     if (unitFlag) {
+                        //unit时直接保持符号跟watch一致
                         clause.isSatisfied = true;
                         if (clause.watch1 > 0) isAssignPos[watch1pos] = true;
                         else isAssignNeg[watch1pos] = true;
                         //保证该clause为true，再看有没有conflict
-                        GraphNode newNode = generateGraphNode(clause,!isCandidateWatch1);
+                        GraphNode newNode = generateGraphNode(clause, !isCandidateWatch1);
                         queue.offer(newNode);
 
 //                        levellist(也就是level2GraphNode的每层) 放在开头add node
@@ -366,9 +411,10 @@ public class Main {
 
     /**
      * check done
+     *
      * @param clause
      * @param secLastpos
-     * @param isWatch1 本次选择变量是否命中watch1
+     * @param isWatch1   本次选择变量是否命中watch1
      * @return
      */
     private static boolean checkIfUnitClause(Clause clause, int secLastpos, boolean isWatch1) {
@@ -376,7 +422,8 @@ public class Main {
         for (int lit : clause.literals) {
             int literal = lit > 0 ? lit : -lit;
             //watchpos1->secLastpos
-            if (literal == secLastpos) continue;
+//            if (literal == secLastpos) continue;
+            if (lit == clause.watch1 || lit == clause.watch2) continue;
 
             if (!isAssignPos[literal] && !isAssignNeg[literal]) {
                 //存在非watch list中的未赋值元素
@@ -391,6 +438,7 @@ public class Main {
 
     /**
      * check done
+     *
      * @param clause
      * @param isGenWatch1
      * @return
@@ -404,8 +452,8 @@ public class Main {
         }
         // maintain data structure
         GraphNode newNode;
-        if (isGenWatch1)  newNode= new GraphNode(preNodes, curDecisionLevel, clause.watch1);
-        else newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch2);
+        if (isGenWatch1) newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch1,1);
+        else newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch2,1);
 
         return newNode;
     }
