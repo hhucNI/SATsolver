@@ -1,5 +1,6 @@
 package org.example;
 
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import org.example.entities.Clause;
 import org.example.entities.GraphNode;
 import org.example.entities.PropStatus;
@@ -24,7 +25,7 @@ public class Main {
      */
     public static Map<Integer, GraphNode> lit2GraphNode = new HashMap<>();
     /**
-     *     全为正，仅作查表使用，或许没用
+     * 全为正，仅作查表使用，或许没用
      */
     public static Set<Integer> allLiterals = new HashSet<>();
 
@@ -38,10 +39,55 @@ public class Main {
     public static boolean[] isAssignPos;
     public static boolean[] isAssignNeg;
 
+    public static String filePath="D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\unsat3.cnf";
     public static void main(String[] args) throws FileNotFoundException {
-        List<Integer> res=new ArrayList<>();
+        long millis1 = System.currentTimeMillis();
+        //do something
 
-        initSingleFileDataStructure();
+
+        List<Integer> ret = SATsolver(filePath);
+        boolean NotAnAnswer = CheckAnswer(ret);
+        long millis2 = System.currentTimeMillis();
+        long time=millis2-millis1;//经过的毫秒数
+        System.out.println("time cost : "+time);
+        if (NotAnAnswer) {
+            System.out.println("--------------------fail--------------------------");
+        } else System.out.println("-------------------pass-------------------");
+
+    }
+
+    public static boolean CheckAnswer(List<Integer> ret) {
+        boolean nextClause = false;
+        boolean notAnAnswer = false;
+        if (ret.size() != 0) {
+            for (Clause clause : clauseList) {
+                for (int literal : clause.literals) {
+                    for (int resVar : ret) {
+                        if (resVar == literal) {
+                            //clause满足
+                            nextClause = true;
+                            break;
+                        }
+                    }
+                    if (nextClause) break;
+                }
+                //break出来
+                if (nextClause) {
+                    nextClause = false;
+                    continue;
+                }
+                //自然结束
+                notAnAnswer = true;
+                break;
+            }
+        }
+        return notAnAnswer;
+    }
+
+    public static List<Integer> SATsolver(String filePath) throws FileNotFoundException {
+        List<Integer> res = new ArrayList<>();
+
+        initSingleFileDataStructure(filePath);
         PropStatus status = assignAndPropagate(0);
         while (true) {
             if (status.unSAT) {
@@ -51,8 +97,7 @@ public class Main {
                 System.out.println("--------                 无解                     ------");
                 System.out.println("-----------------------------------------------");
                 break;
-            }
-            else if (status.isConflict) {
+            } else if (status.isConflict) {
                 //处理冲突
                 //todo 一般不会reason就是自己，但很有可能reason包含自己（decision var错了）
                 Set<GraphNode> rootReason = findRootReason(status.conflictNode);
@@ -102,7 +147,7 @@ public class Main {
 
                 //delete high level assign and propagation
 
-                for (int i = highestLevel; i >= secondHigh && i>=0; i--) {
+                for (int i = highestLevel; i >= secondHigh && i >= 0; i--) {
                     //delete reference and GC
                     List<GraphNode> deletedNode = level2GraphNode.get(i);
                     //unassigned var 数量一定在同一层由 2->0
@@ -125,7 +170,7 @@ public class Main {
                     level2GraphNode.set(i, null);
                 }
 
-                curDecisionLevel = secondHigh>0?secondHigh:0;
+                curDecisionLevel = secondHigh > 0 ? secondHigh : 0;
                 //GC
                 rootReason = null;
 
@@ -136,7 +181,7 @@ public class Main {
                     //重推
                     int svar = secondHighestNode.var;
                     secondHighestNode = null;
-                    highestNode=null;
+                    highestNode = null;
 
                     status = assignAndPropagate(svar);
                 } else {
@@ -144,34 +189,32 @@ public class Main {
 
                     secondHighestNode = null;
                     int hvar = highestNode.var;
-                    highestNode=null;
+                    highestNode = null;
                     status = assignAndPropagate(-hvar);
                 }
 
 
-            }
-            else if (status.isAllDone) {
+            } else if (status.isAllDone) {
                 //结束
                 System.out.println("------------------------RESULT-------------------------");
+                System.out.print("          ");
                 for (int key : lit2GraphNode.keySet()) {
                     int var = lit2GraphNode.get(key).var;
                     res.add(var);
-                    System.out.print(var + "=");
+                    System.out.print(var + " ");
                 }
-                System.out.println("------------------------RESULT-------------------------");
+                System.out.println("\n------------------------RESULT-------------------------");
                 break;
-            }
-            else {
+            } else {
                 //暂时采用随机赋值
                 curDecisionLevel++;
                 status = assignAndPropagate(0);
             }
         }
-
-
+        return res;
     }
 
-    private static void initSingleFileDataStructure() throws FileNotFoundException {
+    private static void initSingleFileDataStructure(String filePath) throws FileNotFoundException {
         //init
 
         //每个列表第一个为decision node
@@ -186,7 +229,7 @@ public class Main {
         int clauseNum = 0;
 
         //read data from file
-        Scanner scan = new Scanner(new File("D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\nby_USAT2.cnf"));
+        Scanner scan = new Scanner(new File(filePath));
         Clause c = new Clause();
         //完善数据处理，标题部分
         while (scan.hasNextLine()) {
@@ -429,8 +472,7 @@ public class Main {
 
                     }
 
-                }
-                else if (nodeVarPos == watch2pos) {
+                } else if (nodeVarPos == watch2pos) {
                     if (node.var == clause.watch2) {
                         //satisfy directly
                         clause.isSatisfied = true;
@@ -451,7 +493,7 @@ public class Main {
                     }
                 }
                 //查看queue里的元素
-                System.out.println("mark");
+//                System.out.println("mark");
             }
         }
         level2GraphNode.set(curDecisionLevel, levelList);
