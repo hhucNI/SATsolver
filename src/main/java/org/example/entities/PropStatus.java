@@ -9,7 +9,7 @@ public class PropStatus {
      * conflictVar 暂且认为是正
      */
     public int conflictVar;
-
+    public boolean unSAT;
     public boolean isConflict;
     public boolean isAllDone = false;
 
@@ -41,5 +41,10 @@ public class PropStatus {
     public PropStatus() {
         conflictVar = 0;
         isConflict = false;
+    }
+
+    public PropStatus(boolean unSAT) {
+        this.unSAT = unSAT;
+        this.isConflict = true;
     }
 }

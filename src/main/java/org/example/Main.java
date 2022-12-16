@@ -23,9 +23,9 @@ public class Main {
      * lit2GraphNode lit正负皆可
      */
     public static Map<Integer, GraphNode> lit2GraphNode = new HashMap<>();
-
-
-    //全为正，仅作查表使用，或许没用
+    /**
+     *     全为正，仅作查表使用，或许没用
+     */
     public static Set<Integer> allLiterals = new HashSet<>();
 
     public static List<Clause> clauseList = new ArrayList<>();
@@ -34,36 +34,25 @@ public class Main {
     /**
      * literal2Clause : literal 为正,lit索引clause
      */
-    //todo literal2Clause应该也有点问题
     public static List<List<Clause>> literal2Clause;
     public static boolean[] isAssignPos;
     public static boolean[] isAssignNeg;
-    //    GRASP()
-//    {
-//        return ((Search (0, ) != SUCCESS) ? FAILURE : SUCCESS);
-//    }
-
-    //    TODO 简化策略 for simplicity : ALL DECISIONs made till now are a Learned Clause
 
     public static void main(String[] args) throws FileNotFoundException {
+        List<Integer> res=new ArrayList<>();
 
         initSingleFileDataStructure();
-
-        //
-//        AssignStrategy assignStrategy=new RandomAssign();
-//        assignStrategy.assgin();
-
-        // ------------------------------------------------------------------------------
-        // -
-        // -
-        //-----------------------------------Assign----------------------------------
-        // -
-        // -
-        // ------------------------------------------------------------------------------
-//        int assignedValue=0;
         PropStatus status = assignAndPropagate(0);
         while (true) {
-            if (status.isConflict) {
+            if (status.unSAT) {
+                //结束
+
+                System.out.println("-----------------------------------------------");
+                System.out.println("--------                 无解                     ------");
+                System.out.println("-----------------------------------------------");
+                break;
+            }
+            else if (status.isConflict) {
                 //处理冲突
                 //todo 一般不会reason就是自己，但很有可能reason包含自己（decision var错了）
                 Set<GraphNode> rootReason = findRootReason(status.conflictNode);
@@ -72,16 +61,14 @@ public class Main {
                 int secondHigh = -2;
                 GraphNode highestNode = null;
                 GraphNode secondHighestNode = null;
-//            int secondHighDecisionLevel;
-                //todo 可能有bug
                 for (GraphNode graphNode : rootReason) {
                     if (graphNode.decisionLevel > highestLevel) {
-                        highestLevel = graphNode.decisionLevel;
-                        highestNode = graphNode;
                         secondHigh = highestLevel;
                         secondHighestNode = highestNode;
-                    }
-                    if (graphNode.decisionLevel > secondHigh) {
+                        highestLevel = graphNode.decisionLevel;
+                        highestNode = graphNode;
+
+                    } else if (graphNode.decisionLevel > secondHigh) {
                         secondHigh = graphNode.decisionLevel;
                         secondHighestNode = graphNode;
                     }
@@ -97,9 +84,17 @@ public class Main {
                 Clause learnedClause = new Clause();
                 learnedClause.literals = clauseLit;
                 learnedClause.isGenerated = true;
-
+                if (learnedClause.literals.size() == 1) learnedClause.bornUnit = true;
                 // update all relevant data structure
                 clauseList.add(learnedClause);
+
+                //Todo 给新clause的剩余变量附上值,这里两个一样有点不好
+                learnedClause.watch1 = -highestNode.var;
+                if (secondHighestNode != null) {
+                    int secVar = secondHighestNode.var;
+                    learnedClause.watch2 = -secVar;
+                }
+
 
                 for (Integer var : clauseLit) {
                     literal2Clause.get(Utils.getPositive(var)).add(learnedClause);
@@ -107,7 +102,7 @@ public class Main {
 
                 //delete high level assign and propagation
 
-                for (int i = highestLevel; i >= secondHigh; i--) {
+                for (int i = highestLevel; i >= secondHigh && i>=0; i--) {
                     //delete reference and GC
                     List<GraphNode> deletedNode = level2GraphNode.get(i);
                     //unassigned var 数量一定在同一层由 2->0
@@ -118,7 +113,7 @@ public class Main {
 
                         if (var > 0) isAssignPos[pvar] = false;
                         else isAssignNeg[pvar] = false;
-                        if(node.var!=0){
+                        if (node.var != 0) {
                             List<Clause> clauses = literal2Clause.get(Utils.getPositive(node.var));
                             for (Clause cc : clauses) {
 //                            if(cc==learnedClause) continue;
@@ -128,45 +123,51 @@ public class Main {
                         }
                     }
                     level2GraphNode.set(i, null);
-//                    level2GraphNode.remove(i,);
                 }
 
-                curDecisionLevel = secondHigh;
-//                curDecisionLevel = secondHigh - 1;
-
-                //backtracking
-                //intuition : 只要被delete的变量涉及的句子把 flag改一下就行，因为即使backtracking 也不影响watch list
-
-
-                //Todo 给新clause的剩余变量附上值,这里两个一样有点不好
-                learnedClause.watch1 = highestNode.var;
-                learnedClause.watch2 = secondHighestNode.var;
+                curDecisionLevel = secondHigh>0?secondHigh:0;
+                //GC
+                rootReason = null;
 
                 //todo 新的clause也需要watch list,因为上面的assgin也可以backtracking,通过倒数第二推出倒数第一，所以backtracking可以把倒
                 // todo 二也delete了，然后倒二赋上相同的值，重新推,推出倒一的neg
-                if(secondHigh!=highestLevel) assignAndPropagate(secondHighestNode.var);
-                else{
-                    //相等，只有这一层
+
+                if (secondHighestNode != null) {
+                    //重推
+                    int svar = secondHighestNode.var;
+                    secondHighestNode = null;
+                    highestNode=null;
+
+                    status = assignAndPropagate(svar);
+                } else {
                     //flip 赋值
-                    assignAndPropagate(-secondHighestNode.var);
+
+                    secondHighestNode = null;
+                    int hvar = highestNode.var;
+                    highestNode=null;
+                    status = assignAndPropagate(-hvar);
                 }
+
+
             }
             else if (status.isAllDone) {
                 //结束
+                System.out.println("------------------------RESULT-------------------------");
                 for (int key : lit2GraphNode.keySet()) {
                     int var = lit2GraphNode.get(key).var;
-                    System.out.println("------------------------RESULT-------------------------");
+                    res.add(var);
                     System.out.print(var + "=");
-                    System.out.println("------------------------RESULT-------------------------");
                 }
+                System.out.println("------------------------RESULT-------------------------");
                 break;
             }
             else {
                 //暂时采用随机赋值
                 curDecisionLevel++;
-                assignAndPropagate(0);
+                status = assignAndPropagate(0);
             }
         }
+
 
     }
 
@@ -185,7 +186,7 @@ public class Main {
         int clauseNum = 0;
 
         //read data from file
-        Scanner scan = new Scanner(new File("D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\nby_conflict.cnf"));
+        Scanner scan = new Scanner(new File("D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\nby_USAT2.cnf"));
         Clause c = new Clause();
         //完善数据处理，标题部分
         while (scan.hasNextLine()) {
@@ -255,13 +256,6 @@ public class Main {
         }
     }
 
-//    public static Set<GraphNode> findRootReason(int conflictVar) {
-//        GraphNode graphNode = lit2GraphNode.get(conflictVar);
-//        Set<GraphNode> container = new HashSet<>();
-//        DFS(container, graphNode);
-//        return container;
-//    }
-
     public static Set<GraphNode> findRootReason(GraphNode conflictNode) {
         Set<GraphNode> container = new HashSet<>();
         DFS(container, conflictNode);
@@ -285,24 +279,43 @@ public class Main {
     private static PropStatus assignAndPropagate(int assignedVar) {
         int candidateDecisionVar = assignedVar;
         boolean hasVar = false;
+        boolean useBornUnitAssign = false;
+        //pick an unsigned
         if (assignedVar == 0) {
-            for (int i = 1; i < isAssignPos.length; i++) {
-
-                boolean b = isAssignPos[i];
-                if (!b && allLiterals.contains(i)) {
-                    //没有外部值，随机赋值,这里直接取正了
-                    candidateDecisionVar = i;
-                    hasVar = true;
-                    break;
+            //先找只有一个变量的clause
+            for (Clause clause : clauseList) {
+                if (clause.bornUnit) {
+                    int var = clause.literals.get(0);
+                    if ((var > 0 && !isAssignPos[var]) || (var < 0 && !isAssignNeg[-var])) {
+                        candidateDecisionVar = var;
+                        hasVar = true;
+                        useBornUnitAssign = true;
+                        clause.isSatisfied = true;
+                        break;
+                    }
                 }
             }
+            if (!hasVar) {
+                for (int i = 1; i < isAssignPos.length; i++) {
+
+                    boolean b = isAssignPos[i] || isAssignNeg[i];
+                    if (!b && allLiterals.contains(i)) {
+                        //没有外部值，随机赋值,这里直接取正了
+                        candidateDecisionVar = i;
+                        hasVar = true;
+                        break;
+                    }
+                }
+            }
+
             //所有var都已经赋值，SUCCESS
             if (!hasVar) return new PropStatus(0, false, true);
         }
 
         //choose this one
-        isAssignPos[candidateDecisionVar] = true;
-
+        if (candidateDecisionVar > 0) isAssignPos[candidateDecisionVar] = true;
+        else isAssignNeg[-candidateDecisionVar] = true;
+//        System.out.println("选择 : "+candidateDecisionVar);
         //insight 未满足的clause一定剩至少两个var，如果其中一个watch lit被assign
         //             另一个立即被推出，故不存在clause仅有一个unassigned var 的情况
 
@@ -310,7 +323,7 @@ public class Main {
         GraphNode graphNode = new GraphNode(null, curDecisionLevel, candidateDecisionVar, 0);
         Queue<GraphNode> queue = new LinkedList<>();
         ArrayList<GraphNode> levelList = new ArrayList<>();
-        level2GraphNode.set(curDecisionLevel,levelList);
+        level2GraphNode.set(curDecisionLevel, levelList);
 
         queue.offer(graphNode);
         while (!queue.isEmpty()) {
@@ -330,6 +343,10 @@ public class Main {
             levelList.add(node);
             //uniform operation
             if (isConflict) {
+                if (useBornUnitAssign) {
+                    //永远无法满足
+                    return new PropStatus(true);
+                }
                 //generate a virtual Conflict Node And do backtrack
                 GraphNode node1 = lit2GraphNode.get(node.var);
                 GraphNode node2 = lit2GraphNode.get(-node.var);
@@ -360,7 +377,10 @@ public class Main {
                     }
                 }
                 if (clause.isSatisfied) continue;
-
+                if (clause.bornUnit) {
+                    if (node.var == clause.literals.get(0)) continue;
+                    else return new PropStatus(true);
+                }
                 int watch1pos = Utils.getPositive(clause.watch1);
                 int watch2pos = Utils.getPositive(clause.watch2);
                 int nodeVarPos = Utils.getPositive(node.var);
@@ -409,7 +429,8 @@ public class Main {
 
                     }
 
-                } else if (nodeVarPos == watch2pos) {
+                }
+                else if (nodeVarPos == watch2pos) {
                     if (node.var == clause.watch2) {
                         //satisfy directly
                         clause.isSatisfied = true;
@@ -429,10 +450,14 @@ public class Main {
 //                        levellist(也就是level2GraphNode的每层) 放在开头add node
                     }
                 }
+                //查看queue里的元素
+                System.out.println("mark");
             }
         }
         level2GraphNode.set(curDecisionLevel, levelList);
         //queue空了 返回既不conflict又不all done
+
+        //todo 怎么跑到这一行，queue空，赋值-1，q为啥空，-1-> -2  3&-3 conflict 没道理到这
         return new PropStatus(0, false, false);
 
 
@@ -475,13 +500,14 @@ public class Main {
     public static GraphNode generateGraphNode(Clause clause, boolean isGenWatch1) {
         List<GraphNode> preNodes = new ArrayList<>();
         for (Integer lit : clause.literals) {
-            if(isGenWatch1){
-                if(lit== clause.watch1) continue;
-            }else{
-                if(lit== clause.watch2) continue;
+            if (isGenWatch1) {
+                if (lit == clause.watch1) continue;
+            } else {
+                if (lit == clause.watch2) continue;
             }
+            //正负
             GraphNode gNode = lit2GraphNode.getOrDefault(lit, null);
-            if(gNode==null) gNode=lit2GraphNode.get(-lit);
+            if (gNode == null) gNode = lit2GraphNode.get(-lit);
 
             //前驱加入
             preNodes.add(gNode);
@@ -496,20 +522,3 @@ public class Main {
 }
 
 
-//check if conflict
-//                        for (GraphNode n : levelList) {
-//                                if (n.equals(newNode)) {
-//                                //本层有两个一样的推导结果
-//                                if (n.assignedValue != newNode.assignedValue) {
-//                                //Conflict
-//                                // 2 case     1.flip or 2.back jump AND flip
-//                                //其实本质上一样，1.flip就相当于back jump到本层
-//
-//
-//                                //出现冲突其他东西就不重要了，直接return
-//                                //
-//                                return new PropStatus(watch1pos);
-//
-//                                }
-//                                }
-//                                }
