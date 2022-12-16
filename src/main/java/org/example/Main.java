@@ -118,40 +118,50 @@ public class Main {
 
                         if (var > 0) isAssignPos[pvar] = false;
                         else isAssignNeg[pvar] = false;
+                        if(node.var!=0){
+                            List<Clause> clauses = literal2Clause.get(Utils.getPositive(node.var));
+                            for (Clause cc : clauses) {
+//                            if(cc==learnedClause) continue;
+                                cc.isSatisfied = false;
 
-                        List<Clause> clauses = literal2Clause.get(Utils.getPositive(node.var));
-                        for (Clause cc : clauses) {
-                            cc.isSatisfied = false;
-
+                            }
                         }
                     }
                     level2GraphNode.set(i, null);
 //                    level2GraphNode.remove(i,);
                 }
 
-                curDecisionLevel = secondHigh - 1;
+                curDecisionLevel = secondHigh;
+//                curDecisionLevel = secondHigh - 1;
 
                 //backtracking
                 //intuition : 只要被delete的变量涉及的句子把 flag改一下就行，因为即使backtracking 也不影响watch list
 
 
-                //Todo 给新clause的剩余变量附上值
+                //Todo 给新clause的剩余变量附上值,这里两个一样有点不好
                 learnedClause.watch1 = highestNode.var;
                 learnedClause.watch2 = secondHighestNode.var;
 
                 //todo 新的clause也需要watch list,因为上面的assgin也可以backtracking,通过倒数第二推出倒数第一，所以backtracking可以把倒
                 // todo 二也delete了，然后倒二赋上相同的值，重新推,推出倒一的neg
-                assignAndPropagate(secondHighestNode.var);
-            } else if (status.isAllDone) {
+                if(secondHigh!=highestLevel) assignAndPropagate(secondHighestNode.var);
+                else{
+                    //相等，只有这一层
+                    //flip 赋值
+                    assignAndPropagate(-secondHighestNode.var);
+                }
+            }
+            else if (status.isAllDone) {
                 //结束
                 for (int key : lit2GraphNode.keySet()) {
-                    int var =lit2GraphNode.get(key).var;
+                    int var = lit2GraphNode.get(key).var;
                     System.out.println("------------------------RESULT-------------------------");
                     System.out.print(var + "=");
                     System.out.println("------------------------RESULT-------------------------");
                 }
                 break;
-            } else {
+            }
+            else {
                 //暂时采用随机赋值
                 curDecisionLevel++;
                 assignAndPropagate(0);
@@ -260,13 +270,14 @@ public class Main {
 
     private static void DFS(Set<GraphNode> container, GraphNode root) {
         if (root == null) return;
-        List<GraphNode> rootpre = root.getPre();
-        if (rootpre == null || rootpre.size() == 0) {
-            //root
+        List<GraphNode> rootPre = root.getPre();
+
+        if (rootPre == null || rootPre.size() == 0) {
+            //没有儿子了，可以加入
             container.add(root);
             return;
         }
-        for (GraphNode pre : rootpre) {
+        for (GraphNode pre : rootPre) {
             DFS(container, pre);
         }
     }
@@ -296,14 +307,17 @@ public class Main {
         //             另一个立即被推出，故不存在clause仅有一个unassigned var 的情况
 
         //Construct Graph
-        GraphNode graphNode = new GraphNode(null, curDecisionLevel, candidateDecisionVar,0);
+        GraphNode graphNode = new GraphNode(null, curDecisionLevel, candidateDecisionVar, 0);
         Queue<GraphNode> queue = new LinkedList<>();
         ArrayList<GraphNode> levelList = new ArrayList<>();
-        level2GraphNode.add(levelList);
+        level2GraphNode.set(curDecisionLevel,levelList);
 
         queue.offer(graphNode);
         while (!queue.isEmpty()) {
             GraphNode node = queue.poll();
+            //将修改状态数组挪到这里
+            if (node.var > 0) isAssignPos[node.var] = true;
+            else isAssignNeg[Utils.getPositive(node.var)] = true;
             //查CONFLICT
             boolean isConflict = false;
             if (node.var > 0) {
@@ -339,9 +353,9 @@ public class Main {
 
                 if (clause.isSatisfied) continue;
                 for (Integer clit : clause.literals) {
-                    if(clit==node.var) {
+                    if (clit == node.var) {
                         //直接满足
-                        clause.isSatisfied=true;
+                        clause.isSatisfied = true;
                         break;
                     }
                 }
@@ -349,10 +363,15 @@ public class Main {
 
                 int watch1pos = Utils.getPositive(clause.watch1);
                 int watch2pos = Utils.getPositive(clause.watch2);
-                int nodeVarPos=Utils.getPositive(node.var);
+                int nodeVarPos = Utils.getPositive(node.var);
                 //todo 12-16 1:15 node.var->nodeVarPos , 加入true直接satisfied的逻辑
                 boolean isCandidateWatch1;
                 if (nodeVarPos == watch1pos) {
+                    if (node.var == clause.watch1) {
+                        //satisfy directly
+                        clause.isSatisfied = true;
+                        continue;
+                    }
                     isCandidateWatch1 = true;
                     //推出watch2
                     //add to graph
@@ -371,8 +390,14 @@ public class Main {
                     if (unitFlag) {
                         clause.isSatisfied = true;
                         //unit时直接保持符号跟watch一致
-                        if (clause.watch2 > 0) isAssignPos[watch2pos] = true;
-                        else isAssignNeg[watch2pos] = true;
+
+
+                        //bug 这里修改状态数组会导致跟 还在队列中未加入图中的node冲突
+
+//                        if (clause.watch2 > 0) isAssignPos[watch2pos] = true;
+//                        else isAssignNeg[watch2pos] = true;
+
+
                         //保证该clause为true，再看有没有conflict
                         //构造前驱pre graphNode
                         //也就是所有var都已经赋值
@@ -384,15 +409,19 @@ public class Main {
 
                     }
 
-                }
-                else if (nodeVarPos == watch2pos) {
+                } else if (nodeVarPos == watch2pos) {
+                    if (node.var == clause.watch2) {
+                        //satisfy directly
+                        clause.isSatisfied = true;
+                        continue;
+                    }
                     isCandidateWatch1 = false;
                     boolean unitFlag = checkIfUnitClause(clause, watch2pos, isCandidateWatch1);
                     if (unitFlag) {
                         //unit时直接保持符号跟watch一致
                         clause.isSatisfied = true;
-                        if (clause.watch1 > 0) isAssignPos[watch1pos] = true;
-                        else isAssignNeg[watch1pos] = true;
+//                        if (clause.watch1 > 0) isAssignPos[watch1pos] = true;
+//                        else isAssignNeg[watch1pos] = true;
                         //保证该clause为true，再看有没有conflict
                         GraphNode newNode = generateGraphNode(clause, !isCandidateWatch1);
                         queue.offer(newNode);
@@ -446,14 +475,21 @@ public class Main {
     public static GraphNode generateGraphNode(Clause clause, boolean isGenWatch1) {
         List<GraphNode> preNodes = new ArrayList<>();
         for (Integer lit : clause.literals) {
-            int plit = Utils.getPositive(lit);
+            if(isGenWatch1){
+                if(lit== clause.watch1) continue;
+            }else{
+                if(lit== clause.watch2) continue;
+            }
+            GraphNode gNode = lit2GraphNode.getOrDefault(lit, null);
+            if(gNode==null) gNode=lit2GraphNode.get(-lit);
+
             //前驱加入
-            preNodes.add(lit2GraphNode.get(plit));
+            preNodes.add(gNode);
         }
         // maintain data structure
         GraphNode newNode;
-        if (isGenWatch1) newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch1,1);
-        else newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch2,1);
+        if (isGenWatch1) newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch1, 1);
+        else newNode = new GraphNode(preNodes, curDecisionLevel, clause.watch2, 1);
 
         return newNode;
     }
