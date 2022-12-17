@@ -20,6 +20,7 @@ public class Main {
      */
     public static ArrayList<ArrayList<GraphNode>> level2GraphNode;
 
+    public static boolean isFlipping=false;
     /**
      * lit2GraphNode lit正负皆可
      */
@@ -39,37 +40,61 @@ public class Main {
     public static boolean[] isAssignPos;
     public static boolean[] isAssignNeg;
 
-    public static String filePath="D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\unsat3.cnf";
+//    sample.cnf ---------------pass
+//    par8.cnf ---------------pass
+//    quinn.cnf ---------------pass
+//    unsat2.cnf ---------------pass
+//    unsat3.cnf ---------------pass
+    public static String filePath="D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\nby_3.cnf";
     public static void main(String[] args) throws FileNotFoundException {
-        long millis1 = System.currentTimeMillis();
         //do something
 
 
         List<Integer> ret = SATsolver(filePath);
         boolean NotAnAnswer = CheckAnswer(ret);
-        long millis2 = System.currentTimeMillis();
-        long time=millis2-millis1;//经过的毫秒数
-        System.out.println("time cost : "+time);
+
         if (NotAnAnswer) {
             System.out.println("--------------------fail--------------------------");
         } else System.out.println("-------------------pass-------------------");
 
     }
 
+    public static void TestAllFiles(){
+        String dir="D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test";
+        File fDir=new File(dir);
+        String[] list = fDir.list();
+        for (String file : list) {
+            boolean notAnAnswer=false;
+            if(file.endsWith("cnf") || file.endsWith("CNF")){
+                try {
+                    notAnAnswer = Main.CheckAnswer(Main.SATsolver(fDir.getPath()+File.separator+file));
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (notAnAnswer) {
+                System.out.println("--------------------fail--------------------------");
+            } else System.out.println("-------------------pass-------------------");
+
+        }
+    }
+
+
     public static boolean CheckAnswer(List<Integer> ret) {
         boolean nextClause = false;
         boolean notAnAnswer = false;
-        if (ret.size() != 0) {
+        HashSet<Integer> unique=new HashSet<>(ret);
+        if(ret.size()==0) {
+            //无解
+            notAnAnswer=true;
+        }
+        else if (ret.size() != 0) {
             for (Clause clause : clauseList) {
                 for (int literal : clause.literals) {
-                    for (int resVar : ret) {
-                        if (resVar == literal) {
-                            //clause满足
-                            nextClause = true;
-                            break;
-                        }
+                    if(unique.contains(literal)){
+                        nextClause = true;
+                        break;
                     }
-                    if (nextClause) break;
                 }
                 //break出来
                 if (nextClause) {
@@ -86,18 +111,28 @@ public class Main {
 
     public static List<Integer> SATsolver(String filePath) throws FileNotFoundException {
         List<Integer> res = new ArrayList<>();
+        long millis1 = System.currentTimeMillis();
 
         initSingleFileDataStructure(filePath);
+
         PropStatus status = assignAndPropagate(0);
         while (true) {
             if (status.unSAT) {
                 //结束
-
+                long millis2 = System.currentTimeMillis();
+                long time=millis2-millis1;//经过的毫秒数
+                System.out.println("time cost : "+time+ " ms");
                 System.out.println("-----------------------------------------------");
                 System.out.println("--------                 无解                     ------");
                 System.out.println("-----------------------------------------------");
                 break;
-            } else if (status.isConflict) {
+            }
+            else if (status.isConflict) {
+                if(isFlipping) {
+                    //结束
+                    status.unSAT=true;
+                    continue;
+                }
                 //处理冲突
                 //todo 一般不会reason就是自己，但很有可能reason包含自己（decision var错了）
                 Set<GraphNode> rootReason = findRootReason(status.conflictNode);
@@ -160,10 +195,12 @@ public class Main {
                         else isAssignNeg[pvar] = false;
                         if (node.var != 0) {
                             List<Clause> clauses = literal2Clause.get(Utils.getPositive(node.var));
+
                             for (Clause cc : clauses) {
 //                            if(cc==learnedClause) continue;
-                                cc.isSatisfied = false;
-
+                                for(int lvar: cc.literals){
+                                    if(lvar==node.var) cc.isSatisfied = false;
+                                }
                             }
                         }
                     }
@@ -182,20 +219,26 @@ public class Main {
                     int svar = secondHighestNode.var;
                     secondHighestNode = null;
                     highestNode = null;
-
+                    isFlipping=false;
                     status = assignAndPropagate(svar);
-                } else {
+                }
+                else {
                     //flip 赋值
 
                     secondHighestNode = null;
                     int hvar = highestNode.var;
                     highestNode = null;
+                    isFlipping=true;
                     status = assignAndPropagate(-hvar);
                 }
 
 
-            } else if (status.isAllDone) {
+            }
+            else if (status.isAllDone) {
                 //结束
+                long millis2 = System.currentTimeMillis();
+                long time=millis2-millis1;//经过的毫秒数
+                System.out.println("time cost : "+time+ " ms");
                 System.out.println("------------------------RESULT-------------------------");
                 System.out.print("          ");
                 for (int key : lit2GraphNode.keySet()) {
@@ -208,6 +251,7 @@ public class Main {
             } else {
                 //暂时采用随机赋值
                 curDecisionLevel++;
+                isFlipping=false;
                 status = assignAndPropagate(0);
             }
         }
@@ -254,8 +298,16 @@ public class Main {
                 c.counter = c.literals.size();
 
                 //set watch var
-                c.watch1 = c.literals.get(0);
-                c.watch2 = c.literals.get(1);
+                if(c.counter<2){
+                    //born unit
+                    c.watch1 = c.literals.get(0);
+                    c.bornUnit=true;
+                }else{
+                    c.watch1 = c.literals.get(0);
+                    c.watch2 = c.literals.get(1);
+                }
+
+
                 clauseList.add(c);
                 c = new Clause();
                 continue;
@@ -328,7 +380,12 @@ public class Main {
             //先找只有一个变量的clause
             for (Clause clause : clauseList) {
                 if (clause.bornUnit) {
+                    //由于是bornunit，应该不会watchlist问题
                     int var = clause.literals.get(0);
+                    if((var>0 && isAssignNeg[var]) || (var<0 && isAssignPos[-var])){
+                        //UNSAT
+                        return new PropStatus(true);
+                    }
                     if ((var > 0 && !isAssignPos[var]) || (var < 0 && !isAssignNeg[-var])) {
                         candidateDecisionVar = var;
                         hasVar = true;
@@ -358,11 +415,7 @@ public class Main {
         //choose this one
         if (candidateDecisionVar > 0) isAssignPos[candidateDecisionVar] = true;
         else isAssignNeg[-candidateDecisionVar] = true;
-//        System.out.println("选择 : "+candidateDecisionVar);
-        //insight 未满足的clause一定剩至少两个var，如果其中一个watch lit被assign
-        //             另一个立即被推出，故不存在clause仅有一个unassigned var 的情况
 
-        //Construct Graph
         GraphNode graphNode = new GraphNode(null, curDecisionLevel, candidateDecisionVar, 0);
         Queue<GraphNode> queue = new LinkedList<>();
         ArrayList<GraphNode> levelList = new ArrayList<>();
@@ -386,8 +439,10 @@ public class Main {
             levelList.add(node);
             //uniform operation
             if (isConflict) {
-                if (useBornUnitAssign) {
+                if (useBornUnitAssign && isFlipping) {
+                    //对unit赋值，导出矛盾，没问题
                     //永远无法满足
+                    //todo 不对，还要出自flip，不然可能是其他lowlevel变量导致的矛盾
                     return new PropStatus(true);
                 }
                 //generate a virtual Conflict Node And do backtrack
@@ -396,7 +451,8 @@ public class Main {
                 List<GraphNode> preList = new ArrayList<>();
                 preList.add(node1);
                 preList.add(node2);
-                GraphNode conflictNode = new GraphNode(preList, node.decisionLevel, 0, 2);
+//                GraphNode conflictNode = new GraphNode(preList, node.decisionLevel, 0, 2);
+                GraphNode conflictNode = new GraphNode(preList, curDecisionLevel, 0, 2);
                 levelList.add(conflictNode);
                 PropStatus conflictStatus = new PropStatus(conflictNode);
                 return conflictStatus;
@@ -407,22 +463,20 @@ public class Main {
             List<Clause> affectedClause = literal2Clause.get(Utils.getPositive(node.var));
 
             for (Clause clause : affectedClause) {
-
-                //insight 未满足的clause一定剩至少两个var，如果其中一个watch lit被assign
-                //             另一个立即被推出，故不存在clause仅有一个unassigned var 的情况
-
-                if (clause.isSatisfied) continue;
-                for (Integer clit : clause.literals) {
-                    if (clit == node.var) {
-                        //直接满足
-                        clause.isSatisfied = true;
-                        break;
-                    }
-                }
                 if (clause.isSatisfied) continue;
                 if (clause.bornUnit) {
-                    if (node.var == clause.literals.get(0)) continue;
-                    else return new PropStatus(true);
+                    if (node.var == clause.literals.get(0)) {
+                        clause.isSatisfied=true;
+                        continue;
+                    }
+                    //TODO 这里赋值不同,应该是推出矛盾,或者交给推理系统
+//                    else return new PropStatus(true);
+                }
+                if(clause.bornUnit){
+                    //不用查啥，直接返回，矛盾在顶部导出
+                    GraphNode newNode = generateGraphNode(clause, true);
+                    queue.offer(newNode);
+                    continue;
                 }
                 int watch1pos = Utils.getPositive(clause.watch1);
                 int watch2pos = Utils.getPositive(clause.watch2);
@@ -430,21 +484,24 @@ public class Main {
                 //todo 12-16 1:15 node.var->nodeVarPos , 加入true直接satisfied的逻辑
                 boolean isCandidateWatch1;
                 if (nodeVarPos == watch1pos) {
-                    if (node.var == clause.watch1) {
-                        //satisfy directly
-                        clause.isSatisfied = true;
-                        continue;
-                    }
-                    isCandidateWatch1 = true;
+
                     //推出watch2
                     //add to graph
                     //这里图节点给出直接前驱就可以,也就是clause的其他literal
                     //由于unit prop，clause中的其他literal一定已经赋值
                     //还要维护literal->graph node的map，但注意，每次清除后，不需要
                     //处理这个map，不需要进行remove，后来的进行覆盖即可？
+                    int oldWatch1=clause.watch1;
+                    isCandidateWatch1 = true;
 
                     //check 2 condition of watch list
-                    boolean unitFlag = checkIfUnitClause(clause, watch1pos, isCandidateWatch1);
+                    boolean unitFlag = checkIfUnitClause(clause, watch1pos, isCandidateWatch1,node.var);
+                    if (node.var == oldWatch1) {
+                        //这里先change watch list
+                        //satisfy directly
+                        clause.isSatisfied = true;
+                        continue;
+                    }
                     //check done ，no other unassigned var
                     //unit prop
                     //考虑到每次var赋值都会把所有涉及的clause处理一遍，所以conflict
@@ -472,14 +529,17 @@ public class Main {
 
                     }
 
-                } else if (nodeVarPos == watch2pos) {
-                    if (node.var == clause.watch2) {
+                }
+                else if (nodeVarPos == watch2pos) {
+                    int oldWatch2=clause.watch2;
+
+                    isCandidateWatch1 = false;
+                    boolean unitFlag = checkIfUnitClause(clause, watch2pos, isCandidateWatch1,node.var);
+                    if (node.var == oldWatch2) {
                         //satisfy directly
                         clause.isSatisfied = true;
                         continue;
                     }
-                    isCandidateWatch1 = false;
-                    boolean unitFlag = checkIfUnitClause(clause, watch2pos, isCandidateWatch1);
                     if (unitFlag) {
                         //unit时直接保持符号跟watch一致
                         clause.isSatisfied = true;
@@ -492,14 +552,21 @@ public class Main {
 //                        levellist(也就是level2GraphNode的每层) 放在开头add node
                     }
                 }
+                else{
+                    //unhit : no need to change watch list and if SAT isSAT=true
+                    for (int lit : clause.literals) {
+                        if(lit==node.var) {
+                            clause.isSatisfied=true;
+                            break;
+                        }
+                    }
+                }
                 //查看queue里的元素
 //                System.out.println("mark");
             }
         }
         level2GraphNode.set(curDecisionLevel, levelList);
         //queue空了 返回既不conflict又不all done
-
-        //todo 怎么跑到这一行，queue空，赋值-1，q为啥空，-1-> -2  3&-3 conflict 没道理到这
         return new PropStatus(0, false, false);
 
 
@@ -513,7 +580,7 @@ public class Main {
      * @param isWatch1   本次选择变量是否命中watch1
      * @return
      */
-    private static boolean checkIfUnitClause(Clause clause, int secLastpos, boolean isWatch1) {
+    private static boolean checkIfUnitClause(Clause clause, int secLastpos, boolean isWatch1,int svar) {
         boolean unitFlag = true;
         for (int lit : clause.literals) {
             int literal = lit > 0 ? lit : -lit;
@@ -540,6 +607,14 @@ public class Main {
      * @return
      */
     public static GraphNode generateGraphNode(Clause clause, boolean isGenWatch1) {
+        //TODO 这里应该有个isAssignCheck
+        //但是因为bfs的延迟，会有矛盾，没必要
+        if(clause.bornUnit){
+
+            //todo 这里的pre=null是否对，应该是可以的，赋值和unit推出的node构造矛盾
+            GraphNode newNode = new GraphNode(null, curDecisionLevel, clause.literals.get(0), 1);
+            return newNode;
+        }
         List<GraphNode> preNodes = new ArrayList<>();
         for (Integer lit : clause.literals) {
             if (isGenWatch1) {

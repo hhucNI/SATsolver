@@ -19,6 +19,19 @@ public class GraphNode {
     public int var;
 //    int varAndValue;
 
+    @Override
+    public String toString() {
+        String spre="NULL";
+        String conflictMark="";
+        if(nodeType==2) conflictMark="Conflict";
+        if(pre!=null) spre="**";
+        return "GraphNode{" +
+                "pre=" + spre +
+                ", decisionLevel=" + decisionLevel +
+                ", var=" + var +
+                '}' + conflictMark;
+    }
+
     /**
      *     0 : decision var  1 : implication 2: conflict node
      */
