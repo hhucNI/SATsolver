@@ -4,17 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b7f4e62a-de7b-47a1-b38c-1e2ef312e7d2" name="Changes" comment="12-16 debug day 2 晚 写测试代码，由于有些clause长度小于2故有些代码还需要修改">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/NBYtestunit.cnf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/nby_small_zebra.cnf" afterDir="false" />
+    <list default="true" id="b7f4e62a-de7b-47a1-b38c-1e2ef312e7d2" name="Changes" comment="12-16 debug day 3 isSatisfied放在后面的版本">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/nby_4_change.cnf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/uf20-01.cnf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/uf20-02.cnf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/uf20-03.cnf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/Test/uf20-04.cnf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Utils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Utils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/entities/GraphNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/entities/GraphNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Test/bmc-1.cnf" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/hard/bmc-1.cnf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Test/bmc-2.cnf" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/hard/bmc-2.cnf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Test/bmc-7.cnf" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/hard/bmc-7.cnf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Test/sample.cnf" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Test/sample.cnf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/Test.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,25 +51,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/1javawork/software_analysis_projs/poi-4.1.2&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "D:/1javawork/software_analysis_projs/SATsolver/src/main/resources/Test",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "MavenSettings"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\1javawork\software_analysis_projs\SATsolver\src\main\resources\Test" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\1javawork\software_analysis_projs\SATsolver\src\main\resources\hard" />
     </key>
@@ -151,7 +152,7 @@
       <workItem from="1670806440325" duration="16259000" />
       <workItem from="1671076757568" duration="8557000" />
       <workItem from="1671088108893" duration="9536000" />
-      <workItem from="1671159953941" duration="59991000" />
+      <workItem from="1671159953941" duration="68269000" />
     </task>
     <task id="LOCAL-00001" summary="create project">
       <created>1667892669650</created>
@@ -244,7 +245,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671202497503</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="12-16 debug day 3 isSatisfied放在后面的版本">
+      <created>1671273418382</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1671273418382</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -285,7 +293,8 @@
     <MESSAGE value="12-16 debug day 2 上午" />
     <MESSAGE value="12-16 debug day 2 晚 终于跑通了几个测试" />
     <MESSAGE value="12-16 debug day 2 晚 写测试代码，由于有些clause长度小于2故有些代码还需要修改" />
-    <option name="LAST_COMMIT_MESSAGE" value="12-16 debug day 2 晚 写测试代码，由于有些clause长度小于2故有些代码还需要修改" />
+    <MESSAGE value="12-16 debug day 3 isSatisfied放在后面的版本" />
+    <option name="LAST_COMMIT_MESSAGE" value="12-16 debug day 3 isSatisfied放在后面的版本" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -293,142 +302,154 @@
         <line-breakpoint type="java-line">
           <condition expression="lit==1 || lit==-1" language="JAVA" />
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>625</line>
+          <line>630</line>
           <option name="timeStamp" value="59" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>564</line>
-          <option name="timeStamp" value="90" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <condition expression="clause.literals.size()==2" language="JAVA" />
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>485</line>
+          <line>508</line>
           <option name="timeStamp" value="92" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <condition expression="clauseList.size()&gt;=11" language="JAVA" />
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>137</line>
+          <line>140</line>
           <option name="timeStamp" value="102" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>158</line>
+          <line>161</line>
           <option name="timeStamp" value="103" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>216</line>
+          <line>224</line>
           <option name="timeStamp" value="104" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>467</line>
+          <line>490</line>
           <option name="timeStamp" value="105" />
         </line-breakpoint>
-        <line-breakpoint type="java-line">
+        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>238</line>
+          <line>245</line>
           <option name="timeStamp" value="106" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>122</line>
+          <line>125</line>
           <option name="timeStamp" value="108" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>445</line>
+          <line>467</line>
           <option name="timeStamp" value="109" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>132</line>
+          <line>135</line>
           <option name="timeStamp" value="110" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
+        <line-breakpoint type="java-line">
           <condition disabled="true" expression="clauseList.size()&gt;=10" language="JAVA" />
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>139</line>
+          <line>142</line>
           <option name="timeStamp" value="111" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>218</line>
+          <line>226</line>
           <option name="timeStamp" value="116" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>211</line>
+          <line>219</line>
           <option name="timeStamp" value="119" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>497</line>
+          <line>519</line>
           <option name="timeStamp" value="120" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>598</line>
+          <line>603</line>
           <option name="timeStamp" value="122" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>583</line>
+          <line>588</line>
           <option name="timeStamp" value="123" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>222</line>
+          <line>230</line>
           <option name="timeStamp" value="124" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <condition expression="clauseList.size()&gt;=10" language="JAVA" />
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>171</line>
+          <line>174</line>
           <option name="timeStamp" value="125" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>425</line>
+          <line>433</line>
           <option name="timeStamp" value="126" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>465</line>
-          <option name="timeStamp" value="128" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>227</line>
+          <line>234</line>
           <option name="timeStamp" value="129" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>86</line>
+          <line>87</line>
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>104</line>
+          <line>107</line>
           <option name="timeStamp" value="131" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
+        <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>209</line>
+          <line>217</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>556</line>
+          <line>559</line>
           <option name="timeStamp" value="136" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
+          <line>571</line>
+          <option name="timeStamp" value="137" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
-          <line>567</line>
-          <option name="timeStamp" value="137" />
+          <line>422</line>
+          <option name="timeStamp" value="139" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <condition expression="lit2GraphNode.size()==50" language="JAVA" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
+          <line>261</line>
+          <option name="timeStamp" value="141" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <condition expression="lit2GraphNode.get(44)!=null" language="JAVA" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
+          <line>383</line>
+          <option name="timeStamp" value="142" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/Main.java</url>
+          <line>488</line>
+          <option name="timeStamp" value="143" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -446,6 +467,8 @@
         <watch expression="node" />
         <watch expression="Main.literal2Clause" />
         <watch expression="Main.clauseList" />
+        <watch expression="Main.lit2GraphNode" />
+        <watch expression="Main.level2GraphNode" />
       </configuration>
     </watches-manager>
   </component>
