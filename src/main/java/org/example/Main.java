@@ -45,11 +45,11 @@ public class Main {
 //    quinn.cnf ---------------pass
 //    unsat2.cnf ---------------pass
 //    unsat3.cnf ---------------pass
-    public static String filePath = "D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\uf20-01.cnf";
+    public static String filePath = "D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test\\NBYsimpleTest.cnf";
+
 
     public static void main(String[] args) throws FileNotFoundException {
         //do something
-
 
         List<Integer> ret = SATsolver(filePath);
         boolean NotAnAnswer = CheckAnswer(ret);
@@ -60,36 +60,13 @@ public class Main {
 
     }
 
-    public static void TestAllFiles() {
-        String dir = "D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test";
-        File fDir = new File(dir);
-        String[] list = fDir.list();
-        for (String file : list) {
-            boolean notAnAnswer = false;
-            if (file.endsWith("cnf") || file.endsWith("CNF")) {
-                try {
-                    notAnAnswer = Main.CheckAnswer(Main.SATsolver(fDir.getPath() + File.separator + file));
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if (notAnAnswer) {
-                System.out.println("--------------------fail--------------------------");
-            } else System.out.println("-------------------pass-------------------");
-
-        }
-    }
-
 
     public static boolean CheckAnswer(List<Integer> ret) {
         boolean nextClause = false;
         boolean notAnAnswer = false;
         HashSet<Integer> unique = new HashSet<>(ret);
-        if (ret.size() == 0) {
-            //无解
-            notAnAnswer = true;
-        } else if (ret.size() != 0) {
-            int id=0;
+        if (ret.size() != 0) {
+            int id = 0;
             for (Clause clause : clauseList) {
                 for (int literal : clause.literals) {
                     if (unique.contains(literal)) {
@@ -104,7 +81,7 @@ public class Main {
                     continue;
                 }
                 //自然结束
-                System.out.println("fail clause "+id+ ": "+clause);
+                System.out.println("fail clause " + id + ": " + clause);
                 notAnAnswer = true;
                 break;
             }
@@ -129,8 +106,7 @@ public class Main {
                 System.out.println("--------                 无解                     ------");
                 System.out.println("-----------------------------------------------");
                 break;
-            }
-            else if (status.isConflict) {
+            } else if (status.isConflict) {
                 if (isFlipping) {
                     //结束
                     status.unSAT = true;
@@ -240,8 +216,7 @@ public class Main {
                 }
 
 
-            }
-            else if (status.isAllDone) {
+            } else if (status.isAllDone) {
                 //结束
                 long millis2 = System.currentTimeMillis();
                 long time = millis2 - millis1;//经过的毫秒数
@@ -435,7 +410,6 @@ public class Main {
             List<Clause> cls = literal2Clause.get(Utils.getPositive(node.var));
 
 
-
             //查CONFLICT
             boolean isConflict = false;
             //出现conflict时，第一个node可以通过，第二个不行
@@ -444,7 +418,7 @@ public class Main {
             } else if (node.var < 0) {
                 isConflict = isAssignPos[-node.var];
             }
-            if(!isConflict){
+            if (!isConflict) {
                 //将修改状态数组挪到这里
                 if (node.var > 0) isAssignPos[node.var] = true;
                 else isAssignNeg[Utils.getPositive(node.var)] = true;
@@ -545,8 +519,7 @@ public class Main {
                         //change : 数据结构修改 改在了开头
                     }
 
-                }
-                else if (nodeVarPos == watch2pos) {
+                } else if (nodeVarPos == watch2pos) {
                     isCandidateWatch1 = false;
                     boolean unitFlag = checkIfUnitClause(clause, watch2pos, isCandidateWatch1, node.var);
                     if (unitFlag) {
@@ -554,8 +527,7 @@ public class Main {
                         GraphNode newNode = generateGraphNode(clause, !isCandidateWatch1);
                         queue.offer(newNode);
                     }
-                }
-                else {
+                } else {
                     //unhit : no need to change watch list and if SAT isSAT=true
                     for (int lit : clause.literals) {
                         if (lit == node.var) {
@@ -566,7 +538,6 @@ public class Main {
                 }
             }
         }
-
 
 
         level2GraphNode.set(curDecisionLevel, levelList);

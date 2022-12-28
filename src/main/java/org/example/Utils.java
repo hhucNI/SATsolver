@@ -7,7 +7,7 @@ import java.io.IOException;
 public class Utils {
 
     public static void main(String[] args) {
-        TestCaseGenerator(20,"D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test");
+        TestCaseGenerator(8,"D:\\1javawork\\software_analysis_projs\\SATsolver\\src\\main\\resources\\Test");
     }
     public static void TestCaseGenerator(int n,String dir){
         String fileName="nby_"+n+".cnf";
